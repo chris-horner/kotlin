@@ -2,10 +2,10 @@
 import android.os.Parcel
 import android.os.Parcelable
 
-class SomeData(parcel: Parcel) : Parcelable {
+class SomeData() : Parcelable {
     var count = 0
 
-    init {
+    constructor(parcel: Parcel) : this() {
         count = parcel.readInt()
     }
 

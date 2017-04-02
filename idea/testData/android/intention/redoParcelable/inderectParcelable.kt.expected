@@ -23,7 +23,10 @@ open class BaseParcelable(parcel: Parcel) : Parcelable {
     }
 }
 
-class MyData(parcel: Parcel) : BaseParcelable(parcel) {
+class MyData() : BaseParcelable(prcl) {
+    constructor(parcel: Parcel) : this() {
+    }
+
     override fun writeToParcel(parcel: Parcel, flags: Int) {
         super.writeToParcel(parcel, flags)
     }

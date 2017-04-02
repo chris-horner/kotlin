@@ -3,7 +3,10 @@ import android.os.Parcelable
 
 // INTENTION_CLASS: org.jetbrains.kotlin.android.intention.ImplementParcelableAction
 
-class Simple(parcel: Parcel) : Parcelable {
+class Simple() : Parcelable {
+    constructor(parcel: Parcel) : this() {
+    }
+
     override fun writeToParcel(parcel: Parcel, flags: Int) {
 
     }

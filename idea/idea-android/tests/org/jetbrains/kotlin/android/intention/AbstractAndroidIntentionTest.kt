@@ -28,7 +28,7 @@ import org.jetbrains.kotlin.test.KotlinTestUtils
 import java.io.File
 
 
-open class AbstractAndroidIntentionTest : KotlinAndroidTestCase() {
+abstract class AbstractAndroidIntentionTest : KotlinAndroidTestCase() {
     fun doTest(path: String) {
         val testFile = File(path)
         val testFileText = FileUtil.loadFile(testFile)

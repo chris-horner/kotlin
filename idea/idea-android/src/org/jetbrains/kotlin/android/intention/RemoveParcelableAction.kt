@@ -21,6 +21,7 @@ import com.intellij.openapi.editor.Editor
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.util.AndroidBundle
 import org.jetbrains.kotlin.android.canRemoveParcelable
+import org.jetbrains.kotlin.android.insideBody
 import org.jetbrains.kotlin.android.removeParcelableImplementation
 import org.jetbrains.kotlin.idea.intentions.SelfTargetingIntention
 import org.jetbrains.kotlin.psi.KtClass
@@ -30,7 +31,9 @@ class RemoveParcelableAction :
         SelfTargetingIntention<KtClass>(KtClass::class.java, AndroidBundle.message("remove.parcelable.intention.text")),
         HighPriorityAction {
     override fun isApplicableTo(element: KtClass, caretOffset: Int): Boolean =
-            AndroidFacet.getInstance(element) != null && element.canRemoveParcelable()
+            AndroidFacet.getInstance(element) != null &&
+            !element.insideBody(caretOffset) &&
+            element.canRemoveParcelable()
 
     override fun applyTo(element: KtClass, editor: Editor?) {
         element.removeParcelableImplementation()

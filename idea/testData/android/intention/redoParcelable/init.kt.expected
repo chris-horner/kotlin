@@ -4,12 +4,12 @@ import android.os.Parcel
 import android.os.Parcelable
 
 
-class MyData(parcel: Parcel) : Parcelable {
+class MyData() : Parcelable {
 
     var count: Int = 0
     var text: String = ""
 
-    init {
+    constructor(parcel: Parcel) : this() {
         count = parcel.readInt()
         text = parcel.readString()
     }
