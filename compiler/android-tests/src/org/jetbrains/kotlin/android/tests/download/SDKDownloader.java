@@ -39,22 +39,26 @@ public class SDKDownloader {
     private final PathManager pathManager;
 
     //NOTE: PLATFORM_TOOLS 23.1.0 requires only 64 bit build agents
-    private static final String PLATFORM_TOOLS = "23.0.1";
+    private static final String PLATFORM_TOOLS = "24.0.4";
     private static final String SDK_TOOLS = "25.1.1";
-    public static final String BUILD_TOOLS = "23.0.3";
+    public static final String BUILD_TOOLS = "25.0.2";
     private static final int ANDROID_VERSION = 19;
-    public static final String GRADLE_VERSION = "2.14.1";
+    public static final String GRADLE_VERSION = "3.4.1";
 
 
     public SDKDownloader(PathManager pathManager) {
         this.pathManager = pathManager;
-        platformZipPath = pathManager.getRootForDownload() + "/platforms.zip";
+        platformZipPath = pathManager.getRootForDownload() + "/" + zipFile("platforms", PLATFORM_TOOLS);
         armImage = pathManager.getRootForDownload() + "/arm-image.zip";
         x86Image = pathManager.getRootForDownload() + "/x86-image.zip";
         platformToolsZipPath = pathManager.getRootForDownload() + "/platform-tools.zip";
         skdToolsZipPath = pathManager.getRootForDownload() + "/tools.zip";
         buildToolsZipPath = pathManager.getRootForDownload() + "/build-tools.zip";
-        gradleZipPath = pathManager.getRootForDownload() + "/gradle" + GRADLE_VERSION + ".zip";
+        gradleZipPath = pathManager.getRootForDownload() + "/" + zipFile("gradle", GRADLE_VERSION);
+    }
+
+    private String zipFile(String name, String version) {
+        return name + version + ".zip";
     }
 
     public void downloadPlatform() {
@@ -127,7 +131,8 @@ public class SDKDownloader {
         String buildToolsFolder = buildTools + BUILD_TOOLS + "/";
         new File(buildToolsFolder).delete();
         unzip(buildToolsZipPath, buildTools);
-        new File(buildTools + "/android-6.0").renameTo(new File(buildToolsFolder));
+        boolean renameTo = new File(buildTools + "/android-7.1.1").renameTo(new File(buildToolsFolder));
+        System.out.println("Renaming android build tools result: " + renameTo);
     }
 
     public void deleteAll() {
