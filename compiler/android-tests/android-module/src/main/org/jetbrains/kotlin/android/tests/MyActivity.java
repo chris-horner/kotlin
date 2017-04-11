@@ -22,6 +22,6 @@ import android.os.Bundle;
 public class MyActivity extends Activity {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        System.out.println(R.string.app_name);
+        System.out.println("Android test application");
     }
 }

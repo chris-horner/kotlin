@@ -65,7 +65,11 @@ public class PathManager {
     }
 
     public String getSrcFolderInAndroidTmpFolder() {
-        return tmpFolder + "/src";
+        return tmpFolder + "/src/main";
+    }
+
+    public String getTestSrcFolderInAndroidTmpFolder() {
+        return tmpFolder + "/src/test";
     }
 
     public String getAndroidSdkRoot() {
