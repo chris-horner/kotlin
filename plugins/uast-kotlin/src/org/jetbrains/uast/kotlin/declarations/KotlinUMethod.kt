@@ -44,6 +44,8 @@ open class KotlinUMethod(
 
     private val kotlinOrigin = (psi.originalElement as KtLightElement<*, *>).kotlinOrigin
 
+    override fun getContainingFile() = kotlinOrigin?.containingFile ?: psi.containingFile
+
     override val annotations by lz {
         (kotlinOrigin as? KtDeclaration)?.annotationEntries?.map { KotlinUAnnotation(it, this) } ?: emptyList()
     }

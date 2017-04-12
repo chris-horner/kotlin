@@ -43,6 +43,8 @@ class KotlinUClass private constructor(
         return super.getOriginalElement()
     }
 
+    override fun getContainingFile() = ktClass?.containingFile ?: psi.containingFile
+
     override val annotations: List<UAnnotation>
         get() = ktClass?.annotationEntries?.map { KotlinUAnnotation(it, this) } ?: emptyList()
 
