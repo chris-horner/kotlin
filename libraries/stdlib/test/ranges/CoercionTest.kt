@@ -5,6 +5,7 @@ import kotlin.test.*
 
 class CoercionTest {
 
+    @Suppress("UNUSED_VARIABLE")
     fun usage() {
         val n = 1
         // infix usage

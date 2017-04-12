@@ -1,8 +1,6 @@
 @file:kotlin.jvm.JvmVersion
 package test.ranges
 
-import java.lang.Double as jDouble
-import java.lang.Float as jFloat
 import org.junit.Test
 import kotlin.test.*
 
@@ -10,17 +8,17 @@ public class RangeJVMTest {
 
     @Test fun doubleRange() {
         val range = -1.0..3.14159265358979
-        assertFalse(jDouble.NEGATIVE_INFINITY in range)
-        assertFalse(jDouble.POSITIVE_INFINITY in range)
-        assertFalse(jDouble.NaN in range)
+        assertFalse(Double.NEGATIVE_INFINITY in range)
+        assertFalse(Double.POSITIVE_INFINITY in range)
+        assertFalse(Double.NaN in range)
     }
 
     @Test fun floatRange() {
         val range = -1.0f..3.14159f
-        assertFalse(jFloat.NEGATIVE_INFINITY in range)
-        assertFalse(jFloat.POSITIVE_INFINITY in range)
+        assertFalse(Float.NEGATIVE_INFINITY in range)
+        assertFalse(Float.POSITIVE_INFINITY in range)
 
-        assertFalse(jFloat.NaN in range)
+        assertFalse(Float.NaN in range)
     }
 
     @Test fun illegalProgressionCreation() {
