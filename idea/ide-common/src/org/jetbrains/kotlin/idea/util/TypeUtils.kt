@@ -28,6 +28,8 @@ import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.platform.JavaToKotlinClassMap
 import org.jetbrains.kotlin.resolve.DescriptorUtils
 import org.jetbrains.kotlin.resolve.descriptorUtil.builtIns
+import org.jetbrains.kotlin.resolve.descriptorUtil.fqNameSafe
+import org.jetbrains.kotlin.resolve.descriptorUtil.fqNameUnsafe
 import org.jetbrains.kotlin.resolve.scopes.LexicalScope
 import org.jetbrains.kotlin.resolve.scopes.utils.findClassifier
 import org.jetbrains.kotlin.types.*
@@ -147,3 +149,12 @@ fun KotlinType.isAbstract(): Boolean {
     val modality = (constructor.declarationDescriptor as? ClassDescriptor)?.modality
     return modality == Modality.ABSTRACT || modality == Modality.SEALED
 }
+
+fun KotlinType.fqNameSafe() = constructor.declarationDescriptor?.fqNameSafe
+
+fun KotlinType.fqNameUnsafe() = constructor.declarationDescriptor?.fqNameUnsafe
+
+fun KotlinType.isSubclassOf(className: FqName, strict: Boolean = false): Boolean =
+        (!strict && fqNameSafe() == className) || constructor.supertypes.any {
+            className == it.fqNameSafe() || it.isSubclassOf(className, true)
+        }
