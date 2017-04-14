@@ -43,6 +43,7 @@ import org.jetbrains.kotlin.resolve.TargetEnvironment
 import org.jetbrains.kotlin.resolve.TargetPlatform
 import org.jetbrains.kotlin.utils.keysToMap
 import java.util.*
+import kotlin.coroutines.experimental.buildSequence
 
 class ResolverForModule(
     val packageFragmentProvider: PackageFragmentProvider,
@@ -129,27 +130,12 @@ interface ModuleInfo {
     val name: Name
     fun dependencies(): List<ModuleInfo>
     fun modulesWhoseInternalsAreVisible(): Collection<ModuleInfo> = listOf()
-    fun dependencyOnBuiltIns(): DependencyOnBuiltIns = DependenciesOnBuiltIns.LAST
+    fun dependencyOnBuiltIns(): DependencyOnBuiltIns = DependencyOnBuiltIns.AFTER_SDK
     val capabilities: Map<ModuleDescriptor.Capability<*>, Any?>
         get() = mapOf(Capability to this)
 
     //TODO: (module refactoring) provide dependency on builtins after runtime in IDEA
-    interface DependencyOnBuiltIns {
-        fun adjustDependencies(builtinsModule: ModuleDescriptorImpl, dependencies: MutableList<ModuleDescriptorImpl>)
-    }
-
-    enum class DependenciesOnBuiltIns : DependencyOnBuiltIns {
-        NONE {
-            override fun adjustDependencies(builtinsModule: ModuleDescriptorImpl, dependencies: MutableList<ModuleDescriptorImpl>) {
-                //do nothing
-            }
-        },
-        LAST {
-            override fun adjustDependencies(builtinsModule: ModuleDescriptorImpl, dependencies: MutableList<ModuleDescriptorImpl>) {
-                dependencies.add(builtinsModule)
-            }
-        };
-    }
+    enum class DependencyOnBuiltIns { NONE, AFTER_SDK }
 
     companion object {
         val Capability = ModuleDescriptor.Capability<ModuleInfo>("ModuleInfo")
@@ -179,16 +165,21 @@ abstract class AnalyzerFacade<in P : PlatformAnalysisParameters> {
             }, delegateResolver)
 
             for (module in modules) {
-                resolverForProject.descriptorForModule(module).setDependencies(LazyModuleDependencies(
+                val moduleDescriptor = resolverForProject.descriptorForModule(module)
+                moduleDescriptor.setDependencies(LazyModuleDependencies(
                         storageManager,
                         computeDependencies = {
-                            val orderedDependencies = listOfNotNull(firstDependency) + module.dependencies()
-                            val dependenciesDescriptors = orderedDependencies.mapTo(ArrayList<ModuleDescriptorImpl>()) { dependencyInfo ->
-                                resolverForProject.descriptorForModule(dependencyInfo as M)
-                            }
-                            module.dependencyOnBuiltIns().adjustDependencies(
-                                    resolverForProject.descriptorForModule(module).builtIns.builtInsModule, dependenciesDescriptors)
-                            dependenciesDescriptors
+                            buildSequence {
+                                if (firstDependency != null) {
+                                    yield(resolverForProject.descriptorForModule(firstDependency))
+                                }
+                                if (module.dependencyOnBuiltIns() == ModuleInfo.DependencyOnBuiltIns.AFTER_SDK) {
+                                    yield(moduleDescriptor.builtIns.builtInsModule)
+                                }
+                                for (dependency in module.dependencies()) {
+                                    yield(resolverForProject.descriptorForModule(dependency as M))
+                                }
+                            }.toList()
                         },
                         computeModulesWhoseInternalsAreVisible = {
                             module.modulesWhoseInternalsAreVisible().mapTo(LinkedHashSet()) {
