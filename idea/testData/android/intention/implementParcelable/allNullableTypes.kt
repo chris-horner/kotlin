@@ -1,7 +1,11 @@
 // INTENTION_CLASS: org.jetbrains.kotlin.android.intention.ImplementParcelableAction
 
+import android.os.Bundle
+import android.os.IBinder
 import android.os.Parcel
 import android.os.Parcelable
+import android.util.SparseBooleanArray
+import android.util.SparseIntArray
 
 open class BaseParcelable(parcel: Parcel) : Parcelable {
     override fun writeToParcel(parcel: Parcel, flags: Int) {
@@ -29,6 +33,7 @@ class <caret>MyData {
     val readonlyField = true
 
     var listOfStrings: List<String?>? = null
+    var listOfIBinder: List<IBinder?>? = null
 
     var arrayfield1: IntArray? = null
     var arrayfield2: Array<String>? = null
@@ -40,6 +45,7 @@ class <caret>MyData {
     var arrayfield8: DoubleArray? = null
     var arrayfield9: BooleanArray? = null
     var arrayfield10: Array<CharSequence>? = null // No method for CharSequence
+    var arrayfield11: Array<IBinder>? = null
 
     var field1: Int? = 0
     var field2: String? = ""
@@ -51,6 +57,10 @@ class <caret>MyData {
     var field8: Double? = 0.0
     var field9: Boolean? = false
     var field10: CharSequence? = ""
+    var field11: SparseBooleanArray? = null
+    var field12: SparseIntArray? = null  // read/write methods will be available starting from android O
+    var field13: Bundle? = null
+    var field14: IBinder? = null
 
     var goodArray: Array<BaseParcelable?>? = emptyArray()
     var badArray: Array<Parcelable?>? = emptyArray()

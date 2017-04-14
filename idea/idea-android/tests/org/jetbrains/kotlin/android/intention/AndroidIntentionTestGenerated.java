@@ -284,9 +284,9 @@ public class AndroidIntentionTestGenerated extends AbstractAndroidIntentionTest 
             KotlinTestUtils.assertAllTestsPresentByMetadata(this.getClass(), new File("idea/testData/android/intention/redoParcelable"), Pattern.compile("^([\\w\\-_]+)\\.kt$"), TargetBackend.ANY, true);
         }
 
-        @TestMetadata("inderectParcelable.kt")
-        public void testInderectParcelable() throws Exception {
-            String fileName = KotlinTestUtils.navigationMetadata("idea/testData/android/intention/redoParcelable/inderectParcelable.kt");
+        @TestMetadata("indirectParcelable.kt")
+        public void testIndirectParcelable() throws Exception {
+            String fileName = KotlinTestUtils.navigationMetadata("idea/testData/android/intention/redoParcelable/indirectParcelable.kt");
             doTest(fileName);
         }
 

@@ -30,7 +30,9 @@ import org.jetbrains.kotlin.idea.codeInsight.shorten.performDelayedRefactoringRe
 import org.jetbrains.kotlin.idea.intentions.getLeftMostReceiverExpression
 import org.jetbrains.kotlin.idea.search.usagesSearch.descriptor
 import org.jetbrains.kotlin.idea.search.usagesSearch.propertyDescriptor
+import org.jetbrains.kotlin.idea.util.isSubclassOf
 import org.jetbrains.kotlin.lexer.KtTokens
+import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.psi.*
 import org.jetbrains.kotlin.resolve.BindingContext
 import org.jetbrains.kotlin.resolve.descriptorUtil.fqNameSafe
@@ -122,7 +124,7 @@ private fun KtClass.findParcelableSupertype(): KtSuperTypeListEntry? = getSuperT
 private fun KtSuperTypeList.findParcelable() = entries?.find { it.typeReference?.isParcelableSuccessorReference() ?: false }
 
 private fun KtTypeReference.isParcelableSuccessorReference() =
-        analyze(BodyResolveMode.PARTIAL)[BindingContext.TYPE, this]?.isSuccessorOfParcelable() ?: false
+        analyze(BodyResolveMode.PARTIAL)[BindingContext.TYPE, this]?.isSubclassOfParcelable() ?: false
 
 private fun KtClass.superExtendsParcelable() = superTypeListEntries.find { it.typeReference?.extendsParcelable() ?: false } != null
 
@@ -257,7 +259,7 @@ private fun PropertyDescriptor.formatReadFromParcel(parcelName: String): String?
             return "$parcelName.readValue(${type.formatJavaClassloader()}) as? ${type.getName()}"
         }
         else if (KotlinBuiltIns.isCharSequenceOrNullableCharSequence(type)) {
-            return "$parcelName.readString() as? ${type.getName()}"
+            return "$parcelName.readString()"
         }
     }
 
@@ -273,11 +275,16 @@ private fun PropertyDescriptor.formatReadFromParcel(parcelName: String): String?
     return when {
         KotlinBuiltIns.isCharSequence(type) -> "$parcelName.readString()"
         KotlinBuiltIns.isStringOrNullableString(type) -> "$parcelName.readString()"
-        type.isSuccessorOfParcelable(true) -> "$parcelName.readParcelable(${type.formatJavaClassloader()})"
         type.isArrayOfParcelable() -> "$parcelName.createTypedArray(${type.arguments.single().type.getName()}.CREATOR)"
         type.isListOfParcelable() -> "$parcelName.createTypedArrayList(${type.arguments.single().type.getName()}.CREATOR)"
+        type.isArrayOfIBinder() -> "$parcelName.createBinderArray()"
+        type.isListOfIBinder() -> "$parcelName.createBinderArrayList()"
         type.isArrayOfString() -> "$parcelName.createStringArray()"
         type.isListOfString() -> "$parcelName.createStringArrayList()"
+        type.isSparseBooleanArray() -> "$parcelName.readSparseBooleanArray()"
+        type.isBundle() -> "$parcelName.readBundle(${type.formatJavaClassloader()})"
+        type.isIBinder() -> "$parcelName.readStrongBinder()"
+        type.isSubclassOfParcelable(true) -> "$parcelName.readParcelable(${type.formatJavaClassloader()})"  // This one should go last
         else -> null
     }
 }
@@ -311,11 +318,16 @@ private fun PropertyDescriptor.formatWriteToParcel(parcelName: String, flagsName
     return when {
         KotlinBuiltIns.isCharSequence(type) -> "$parcelName.writeString($name.toString())"
         KotlinBuiltIns.isStringOrNullableString(type) -> "$parcelName.writeString($name)"
-        type.isSuccessorOfParcelable(true) -> "$parcelName.writeParcelable($name, $flagsName)"
         type.isArrayOfParcelable() -> "$parcelName.writeTypedArray($name, $flagsName)"
         type.isListOfParcelable() -> "$parcelName.writeTypedList($name)"
+        type.isArrayOfIBinder() -> "$parcelName.writeBinderArray($name)"
+        type.isListOfIBinder() -> "$parcelName.writeBinderList($name)"
         type.isArrayOfString() -> "$parcelName.writeStringArray($name)"
         type.isListOfString() -> "$parcelName.writeStringList($name)"
+        type.isSparseBooleanArray() -> "$parcelName.writeSparseBooleanArray($name)"
+        type.isBundle() -> "$parcelName.writeBundle($name)"
+        type.isIBinder() -> "$parcelName.writeStrongBinder($name)"
+        type.isSubclassOfParcelable(true) -> "$parcelName.writeParcelable($name, $flagsName)" // This one should go last
         else -> null
     }
 }
@@ -379,7 +391,7 @@ private fun KtClass.createSecondaryConstructor(factory: KtPsiFactory): KtConstru
 }
 
 private fun KtTypeReference.extendsParcelable(): Boolean =
-    analyze(BodyResolveMode.PARTIAL)[BindingContext.TYPE, this]?.isSuccessorOfParcelable(true) ?: false
+        analyze(BodyResolveMode.PARTIAL)[BindingContext.TYPE, this]?.isSubclassOfParcelable(true) ?: false
 
 private fun KtClass.findWriteToParcel() = declarations.find { it.isWriteToParcel() }
 
@@ -435,11 +447,15 @@ private fun KotlinType.getName() = constructor.declarationDescriptor?.name
 
 private fun KotlinType.fqNameEquals(fqName: String) = constructor.declarationDescriptor?.fqNameSafe?.asString() == fqName
 
-private fun KotlinType.isSuccessorOfParcelable(strict: Boolean = false): Boolean =
-        (!strict && fqNameEquals(CLASS_PARCELABLE)) || constructor.supertypes.any { it.isSuccessorOfParcelable(false) }
+private fun KotlinType.isSubclassOfParcelable(strict: Boolean = false): Boolean = isSubclassOf(FqName(CLASS_PARCELABLE), strict)
+
+private fun KotlinType.isIBinder(): Boolean = fqNameEquals("android.os.IBinder")
 
 private fun KotlinType.isArrayOfParcelable(): Boolean =
-        KotlinBuiltIns.isArray(this) && arguments.singleOrNull()?.type?.isSuccessorOfParcelable(true) ?: false
+        KotlinBuiltIns.isArray(this) && arguments.singleOrNull()?.type?.isSubclassOfParcelable(true) ?: false
+
+private fun KotlinType.isArrayOfIBinder(): Boolean =
+        KotlinBuiltIns.isArray(this) && arguments.singleOrNull()?.type?.isIBinder() ?: false
 
 private fun KotlinType.isArrayOfString(): Boolean =
         KotlinBuiltIns.isArray(this) && KotlinBuiltIns.isStringOrNullableString(arguments.singleOrNull()?.type)
@@ -448,6 +464,13 @@ private fun KotlinType.isListOfString(): Boolean =
         KotlinBuiltIns.isListOrNullableList(this) && KotlinBuiltIns.isStringOrNullableString(arguments.singleOrNull()?.type)
 
 private fun KotlinType.isListOfParcelable(): Boolean =
-        KotlinBuiltIns.isListOrNullableList(this) && arguments.singleOrNull()?.type?.isSuccessorOfParcelable(true) ?: false
+        KotlinBuiltIns.isListOrNullableList(this) && arguments.singleOrNull()?.type?.isSubclassOfParcelable(true) ?: false
+
+private fun KotlinType.isListOfIBinder(): Boolean =
+        KotlinBuiltIns.isListOrNullableList(this) && arguments.singleOrNull()?.type?.isIBinder() ?: false
+
+private fun KotlinType.isSparseBooleanArray(): Boolean = fqNameEquals("android.util.SparseBooleanArray")
+
+private fun KotlinType.isBundle(): Boolean = fqNameEquals("android.os.Bundle")
 
 private fun <T: KtDeclaration> T.addNewLineBeforeDeclaration() = parent.addBefore(KtPsiFactory(this).createNewLine(), this)

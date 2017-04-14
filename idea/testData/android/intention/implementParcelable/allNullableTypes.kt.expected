@@ -1,7 +1,11 @@
 // INTENTION_CLASS: org.jetbrains.kotlin.android.intention.ImplementParcelableAction
 
+import android.os.Bundle
+import android.os.IBinder
 import android.os.Parcel
 import android.os.Parcelable
+import android.util.SparseBooleanArray
+import android.util.SparseIntArray
 
 open class BaseParcelable(parcel: Parcel) : Parcelable {
     override fun writeToParcel(parcel: Parcel, flags: Int) {
@@ -29,6 +33,7 @@ class MyData() : Parcelable {
     val readonlyField = true
 
     var listOfStrings: List<String?>? = null
+    var listOfIBinder: List<IBinder?>? = null
 
     var arrayfield1: IntArray? = null
     var arrayfield2: Array<String>? = null
@@ -40,6 +45,7 @@ class MyData() : Parcelable {
     var arrayfield8: DoubleArray? = null
     var arrayfield9: BooleanArray? = null
     var arrayfield10: Array<CharSequence>? = null // No method for CharSequence
+    var arrayfield11: Array<IBinder>? = null
 
     var field1: Int? = 0
     var field2: String? = ""
@@ -51,6 +57,10 @@ class MyData() : Parcelable {
     var field8: Double? = 0.0
     var field9: Boolean? = false
     var field10: CharSequence? = ""
+    var field11: SparseBooleanArray? = null
+    var field12: SparseIntArray? = null  // read/write methods will be available starting from android O
+    var field13: Bundle? = null
+    var field14: IBinder? = null
 
     var goodArray: Array<BaseParcelable?>? = emptyArray()
     var badArray: Array<Parcelable?>? = emptyArray()
@@ -76,6 +86,7 @@ class MyData() : Parcelable {
 
     constructor(parcel: Parcel) : this() {
         listOfStrings = parcel.createStringArrayList()
+        listOfIBinder = parcel.createBinderArrayList()
         arrayfield1 = parcel.createIntArray()
         arrayfield2 = parcel.createStringArray()
         arrayfield3 = parcel.createLongArray()
@@ -84,6 +95,7 @@ class MyData() : Parcelable {
         arrayfield7 = parcel.createFloatArray()
         arrayfield8 = parcel.createDoubleArray()
         arrayfield9 = parcel.createBooleanArray()
+        arrayfield11 = parcel.createBinderArray()
         field1 = parcel.readValue(Int::class.java.classLoader) as? Int
         field2 = parcel.readString()
         field3 = parcel.readValue(Long::class.java.classLoader) as? Long
@@ -93,7 +105,10 @@ class MyData() : Parcelable {
         field7 = parcel.readValue(Float::class.java.classLoader) as? Float
         field8 = parcel.readValue(Double::class.java.classLoader) as? Double
         field9 = parcel.readValue(Boolean::class.java.classLoader) as? Boolean
-        field10 = parcel.readString() as? CharSequence
+        field10 = parcel.readString()
+        field11 = parcel.readSparseBooleanArray()
+        field13 = parcel.readBundle(Bundle::class.java.classLoader)
+        field14 = parcel.readStrongBinder()
         goodArray = parcel.createTypedArray(BaseParcelable)
         goodList = parcel.createTypedArrayList(BaseParcelable)
         parcelableProperty = parcel.readParcelable(BaseParcelable::class.java.classLoader)
@@ -101,6 +116,7 @@ class MyData() : Parcelable {
 
     override fun writeToParcel(parcel: Parcel, flags: Int) {
         parcel.writeStringList(listOfStrings)
+        parcel.writeBinderList(listOfIBinder)
         parcel.writeIntArray(arrayfield1)
         parcel.writeStringArray(arrayfield2)
         parcel.writeLongArray(arrayfield3)
@@ -109,6 +125,7 @@ class MyData() : Parcelable {
         parcel.writeFloatArray(arrayfield7)
         parcel.writeDoubleArray(arrayfield8)
         parcel.writeBooleanArray(arrayfield9)
+        parcel.writeBinderArray(arrayfield11)
         parcel.writeValue(field1)
         parcel.writeString(field2)
         parcel.writeValue(field3)
@@ -119,6 +136,9 @@ class MyData() : Parcelable {
         parcel.writeValue(field8)
         parcel.writeValue(field9)
         parcel.writeString(field10?.toString())
+        parcel.writeSparseBooleanArray(field11)
+        parcel.writeBundle(field13)
+        parcel.writeStrongBinder(field14)
         parcel.writeTypedArray(goodArray, flags)
         parcel.writeTypedList(goodList)
         parcel.writeParcelable(parcelableProperty, flags)
