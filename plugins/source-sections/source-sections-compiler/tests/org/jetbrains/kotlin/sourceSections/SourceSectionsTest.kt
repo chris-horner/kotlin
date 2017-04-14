@@ -60,7 +60,7 @@ class SourceSectionsTest : TestCaseWithTmpdir() {
 
     val compilerClassPath = listOf(kotlinPaths.compilerPath)
     val scriptRuntimeClassPath = listOf( kotlinPaths.runtimePath, kotlinPaths.scriptRuntimePath)
-    val sourceSectionsPluginJar = File(kotlinPaths.libPath, "source-sections-compiler-plugin.jar")
+    val sourceSectionsPluginJar = File(kotlinPaths.libPath, "kotlin-source-sections-compiler-plugin.jar")
     val compilerId by lazy(LazyThreadSafetyMode.NONE) { CompilerId.makeCompilerId(compilerClassPath) }
 
     private fun createEnvironment(vararg sources: String, withSourceSectionsPlugin: Boolean = true): KotlinCoreEnvironment {
