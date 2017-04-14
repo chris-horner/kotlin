@@ -404,17 +404,16 @@
     </target>
 
     <target name="compiler-fork">
-        <local name="jvmargs" />
-        <condition property="jvmargs" value="${compiler.ant.fork.jvmargs}" else="">
-            <isset property="compiler.ant.fork.jvmargs" />
-        </condition>
-
+        <echo>
+            -Dbootstrap.or.local.build=${bootstrap.or.local.build}
+            -Dbuild.number=${build.number}
+        </echo>
         <java classname="org.apache.tools.ant.launch.Launcher"
               fork="true"
               failonerror="true"
               timeout="4000000"
               taskname="ant-fork">
-            <jvmarg line="${jvmargs}" />
+            <jvmarg if:set="compiler.ant.fork.jvmargs" line="${compiler.ant.fork.jvmargs}"/>
             <classpath>
                 <pathelement location="${ant.home}/lib/ant-launcher.jar"/>
             </classpath>
@@ -992,3 +991,5 @@
 
     <target name="build-artifacts" depends="dist,zip-compiler,zip-test-data"/>
 </project>
+
+
