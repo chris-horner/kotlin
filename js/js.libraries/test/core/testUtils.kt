@@ -17,8 +17,7 @@
 package kotlin.test
 
 public fun assertTypeEquals(expected: Any?, actual: Any?) {
-    //TODO: find analogue
-    //assertEquals(expected?.javaClass, actual?.javaClass)
+    assertEquals(expected?.let { it::class.js }, actual?.let { it::class.js })
 }
 
 internal inline fun String.removeLeadingPlusOnJava6(): String = this
