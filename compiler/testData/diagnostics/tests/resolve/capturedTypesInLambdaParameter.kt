@@ -21,11 +21,11 @@ fun test(b: B<out Number>) {
     }
 
     b.bar({ x, y ->
-        x checkType { _<Number>() }
-        y checkType { _<Number>() }
-        x.toInt()
-        y.toInt()
-    }) { u, w ->
+              x checkType { _<Number>() }
+              y checkType { _<Number>() }
+              x.toInt()
+              y.toInt()
+          }) { u, w ->
         u checkType { _<Number>() }
         w checkType { _<Number>() }
 
@@ -37,6 +37,6 @@ fun test(b: B<out Number>) {
     b.foo(Number::foobar)
 
     b.baz {
-        b -> b checkType { _<B<out Number>>() }
+        <!NAME_SHADOWING!>b<!> -> b checkType { _<B<out Number>>() }
     }
 }
